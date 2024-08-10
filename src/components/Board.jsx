@@ -1,6 +1,7 @@
 import {useState} from 'react'
 import '../App.css'
 import Square from './Square'
+import Score from './Score';
 import clickX from '../assets/audio/x.wav'
 import clickO from '../assets/audio/o.wav'
 import btnFondo from '../assets/btn-fondo.png'
@@ -8,8 +9,7 @@ import btnFondo from '../assets/btn-fondo.png'
 const Board = ({changeBack}) => {
 
   const [xIsNext, setXIsNext] = useState(true);
-  const [squares, setSquares] = useState(Array(9).fill(null));
-
+  const [squares, setSquares] = useState(Array(9).fill(0));
   const [scores, setScores] = useState({scoreX: 0, scoreO: 0, scoreT: 0});
 
   function handleClick(i) {
@@ -34,8 +34,24 @@ const Board = ({changeBack}) => {
 
   function replay() {
 
-    setSquares(Array(9).fill(null));
-    setXIsNext(true);
+    if(winner) {
+      if(winner === "X") {
+        let {scoreX} = scores;
+        scoreX += 1;
+        setScores({...scores, scoreX});
+      } else {
+        let {scoreO} = scores;
+        scoreO += 1;
+        setScores({...scores, scoreO});
+      } 
+    } else {
+        let {scoreT} = scores;
+        scoreT += 1;
+        setScores({...scores, scoreT});
+    }
+
+    setSquares(Array(9).fill(0));
+    xIsNext ? setXIsNext(true) : setXIsNext(false);
   }
 
   function calculateWinner(squares) {
@@ -67,20 +83,8 @@ const Board = ({changeBack}) => {
 
   if(winner) {
     status =  `Winner: ${winner}`;
-    if(winner === 'X') {
-      let {scoreX} = scores;
-      scoreX += 1;
-      setScores({...scores, scoreX});
-    } else if (winner === 'O') {
-      let {scoreO} = scores;
-      scoreO += 1;
-      setScores({...scores, scoreO});
-    }
-  }else if(!squares.includes(null)){
+  }else if(!squares.includes(0)){
     status = 'Tie!'
-    let {scoreT} = scores;
-    scoreT += 1;
-    setScores({...scores, scoreT});
   }else{
     status = `Next player: ${xIsNext ? 'X' : 'O'}`;
   }
@@ -90,13 +94,9 @@ const Board = ({changeBack}) => {
       <div>
         <div className='options'>
           <div className='status'>{status}</div>
-          <button className='btn-fondo' onClick={changeBack}><img src={btnFondo} alt="btn-fondo" /></button>
+          <button className='btn-fondo' onClick={() => changeBack()}><img src={btnFondo} alt="btn-fondo" /></button>
         </div>
-        <div className='points'>
-          <span>Player (X): {scores.scoreX}</span>
-          <span className='points-o'>Player (O): {scores.scoreO}</span>
-          <span>Tie: {scores.scoreT}</span>
-        </div>
+        <Score scores={scores}/>
       </div>
       <div className='game-board'>
         <div className='board-row'>
@@ -115,7 +115,7 @@ const Board = ({changeBack}) => {
           <Square value={squares[8]} onSquareClick={() => handleClick(8)}/>
         </div>
       </div>
-      {winner || !squares.includes(null) ? <button className='btn-replay' onClick={replay}>Play again</button> : ''}
+      {winner || !squares.includes(0) ? <button className='btn-replay' onClick={() => replay()}>Play again</button> : ''}
     </>
   )
 }
